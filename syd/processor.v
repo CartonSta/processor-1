@@ -91,41 +91,51 @@ module processor(
     input [31:0] data_readRegA, data_readRegB;
 
     /* YOUR CODE STARTS HERE */
-	 wire Rwe,Rs2,ALUinB,DMwe,Rwd;
-	 wire[4:0] ALUop,shiftamt;
 	 
-	 //control signals
-	 controlSignals myControl(q_imem,Rwe,Rs2,ALUinB,DMwe,Rwd,ALUop,shiftamt);
 	 
-	 //assign s1 and s2
-	 assign ctrl_readRegA=q_imem[21:17];
-	 assign ctrl_readRegB=Rs2?q_imem[26:22]:q_imem[16:12];
 	 
-	 //
-	 wire [31:0] data_operandB, extendImd;
-	 //do sign extend for [16:0], not finished yet!!!
-	 assign data_operandB=ALUinB?extendImd:data_readRegB;
+	 //clock
+	 reg dmem_clk,regfile_clk;
+	 clock myClock(clock,reset,dmem_clk,regfile_clk);
+	 reg pc_clk;
+	 pc_clk <= regfile_clk;
 	 
-	 //alu part
-	 wire [31:0] data_result;
-	 wire isNotEqual,isLessThan,overflow;
-	 alu myAlu(data_readRegA, data_operandB, ALUop, shiftamt, data_result, isNotEqual, isLessThan, overflow);
+	 //PC
+	 pc myPC(pc_clk,reset,address_imem);
 	 
-	 //change rd to 30 if overflow
-	 assign ctrl_writeReg=overflow?5'b11110:q_imem[26:22];
 	 
-	 //assign data_writeReg
-	 wire [31:0] data_wrietReg;
-	 assign data_writeReg=Rwd?q_dmem:data_result;
-	 
-	 //regfile part
-	 //不懂这里data_readRegA B要怎么处理
-	 //regClock not implement!!!
-	 regfile myReg(regClock, Rwe, reset, ctrl_writeReg,ctrl_readRegA, ctrl_readRegB, data_writeReg, data_readRegA,
-	data_readRegB);
+	 always @(posedge clock) begin
+		 //control signals
+		 wire Rs2,ALUinB,Rwd;
+		 wire[4:0] ALUop,shiftamt;
+		 controlSignals myControl(q_imem,ctrl_writeReg,Rs2,ALUinB,wren,Rwd,ALUop,shiftamt);
+		 
+		 //assign ctrl_readRegA and ctrl_readRegB
+		 assign ctrl_readRegA=q_imem[21:17];
+		 assign ctrl_readRegB=Rs2?q_imem[26:22]:q_imem[16:12];
+		 
+		 //assign data_operandB, s2 or immd
+		 wire [31:0] data_operandB, extendImd;
+		 extendImd[16:0] = q_imem[16:0];
+		 extendImd[31:17] = {15{q_imem[16]}};
+		 assign data_operandB=ALUinB?extendImd:data_readRegB;
+		 
+		 //alu part
+		 wire [31:0] data_result;
+		 wire isNotEqual,isLessThan,overflow;
+		 alu myAlu(data_readRegA, data_operandB, ALUop, shiftamt, data_result, isNotEqual, isLessThan, overflow);
+		 
+		 //change rd to 30 if overflow
+		 assign ctrl_writeReg=overflow?5'b11110:q_imem[26:22];
+		 
+		 //assign data_writeReg
+		 assign data_writeReg=Rwd?q_dmem:data_result;
+		 
+		 //data
+		 assign data=data_readRegB
+		
+	end
+	//imem & dmem 不会
 	
-	//dmem 没写
-	//PC 没写
-	//clock 没写
 
 endmodule
