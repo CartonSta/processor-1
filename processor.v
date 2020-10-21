@@ -100,7 +100,7 @@ module processor(
      wire isNotEqual,isLessThan,overflow;
      
 	  
-	  reg[31:0] inner_write;
+	  reg[31:0] inner_write1,inner_writeData;
 	  reg[4:0] inner_RegA,inner_RegB,inner_writeReg;
 	  reg inner_rwe,inner_wren;
 	  
@@ -114,7 +114,7 @@ module processor(
      assign ctrl_readRegA=inner_RegA;
 	  assign ctrl_readRegB=inner_RegB;
 	  assign ctrl_writeReg=inner_writeReg;
-	  assign data_writeReg=inner_write;
+	  assign data_writeReg=inner_writeData;
 	  assign ctrl_writeEnable=inner_rwe;
 	  
 	  //outputs for Dmem
@@ -134,7 +134,8 @@ module processor(
 		 inner_RegA=q_imem[21:17];
 		 inner_RegB=Rs2?q_imem[26:22]:q_imem[16:12];
 		 inner_writeReg=overflow?5'b11110:q_imem[26:22];
-		 inner_write=Rwd?q_dmem:data_result;
+		 inner_write1=Rwd?q_dmem:data_result;
+		 inner_writeData=overflow?1'b1:inner_write1;
 		 inner_rwe=Rwe;
 
 		 //for Dmem, assign data and address_dmem

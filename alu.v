@@ -9,6 +9,7 @@ module alu(data_operandA, data_operandB, ctrl_ALUopcode,
 	wire signed[31:0] inner_A, inner_B;
 	reg signed[31:0] inner_result;
 	reg inner_cout;
+	reg inner_of;
 	
 	assign inner_A = data_operandA;
 	assign inner_B = data_operandB;
@@ -16,7 +17,9 @@ module alu(data_operandA, data_operandB, ctrl_ALUopcode,
 	
 	assign isNotEqual = inner_A != inner_B;
 	assign isLessThan = inner_A < inner_B;
-	assign overflow = inner_cout != inner_result[31];
+	
+	assign overflow=inner_of;
+	
 	
 	always @(ctrl_ALUopcode or inner_A or inner_B or ctrl_shiftamt)
 		begin
@@ -30,6 +33,16 @@ module alu(data_operandA, data_operandB, ctrl_ALUopcode,
 				4 : inner_result = inner_A << ctrl_shiftamt;		// SLL
 				5 : inner_result = inner_A >>> ctrl_shiftamt;	// SRA
 			endcase
+			
+			if (ctrl_ALUopcode == 0 ) begin
+				inner_of = inner_cout != inner_result[31];
+			end
+			else if(ctrl_ALUopcode == 1) begin
+				inner_of = inner_cout != inner_result[31];
+			end
+			else begin
+				inner_of=0;
+			end
 		end
 	
 endmodule
