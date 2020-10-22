@@ -101,13 +101,11 @@ module processor(
    wire[4:0] ALUop,shiftamt;
     
 	controlSignals myControl(q_imem,ctrl_writeEnable,Rs2,ALUinB,wren,Rwd,ALUop,shiftamt);
-     
-	wire [31:0] data_write1;
 	 
 	 //assign data_operandB, s2 or immd
 	wire signed[31:0] data_operandB,extendImd;
 	assign extendImd[16:0] = q_imem[16:0];
-	assign extendImd[31:17] = {15{q_imem[16]}};
+	assign extendImd[31:17] = {15{q_imem[16]}}; //sign extend
 	assign data_operandB=ALUinB?extendImd:data_readRegB;
 	
 	//alu	
@@ -116,14 +114,15 @@ module processor(
 	alu myAlu(data_readRegA, data_operandB, ALUop, shiftamt, data_result, isNotEqual, isLessThan, overflow);
 
 
-	//for Regfile
+	//Regfile
 	assign ctrl_readRegA=q_imem[21:17];
 	assign ctrl_readRegB=Rs2?q_imem[26:22]:q_imem[16:12];
-	assign ctrl_writeReg=overflow?5'b11110:q_imem[26:22];
+	assign ctrl_writeReg=overflow?5'b11110:q_imem[26:22]; //if overflow, write to $30
+	wire [31:0] data_write1;
 	assign data_write1=Rwd?q_dmem:data_result;
-	assign data_writeReg=overflow?1'b1:data_write1;
+	assign data_writeReg=overflow?1'b1:data_write1;//if overflow, write 1
 
-	//for Dmem, assign data and address_dmem
+	//Dmem
 	assign address_dmem=data_result[11:0];
 	assign data=data_readRegB;	 
 	

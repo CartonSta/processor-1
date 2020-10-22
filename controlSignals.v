@@ -29,7 +29,7 @@ always @* begin
 	 
 	 if(q_imem[31:27]==5'b00101) begin //addi
 		inner_Rwe=1'b1;
-		inner_Rs2=1'b0;  //question? : how to indicate X
+		inner_Rs2=1'b0;  
 		inner_ALUinB=1'b1;
 		inner_DMwe=1'b0;
 		inner_Rwd=1'b0;
@@ -49,7 +49,7 @@ always @* begin
 	 
 	 if(q_imem[31:27]==5'b01000) begin //lw
 		inner_Rwe=1'b1;
-		inner_Rs2=1'b0;  //question? : how to indicate X
+		inner_Rs2=1'b0;  
 		inner_ALUinB=1'b1;
 		inner_DMwe=1'b0;
 		inner_Rwd=1'b1;

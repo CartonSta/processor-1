@@ -34,6 +34,7 @@ module alu(data_operandA, data_operandB, ctrl_ALUopcode,
 				5 : inner_result = inner_A >>> ctrl_shiftamt;	// SRA
 			endcase
 			
+			//overflow
 			if (ctrl_ALUopcode == 0 ) begin
 				inner_of = inner_cout != inner_result[31];
 			end
