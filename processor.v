@@ -92,36 +92,39 @@ module processor(
 
     /* YOUR CODE STARTS HERE */
 	 
-	 //control signals
-	  wire Rs2,Rwe,ALUinB,Rwd,DMwe;
-     wire[4:0] ALUop,shiftamt;
-     wire signed[31:0] data_operandB,extendImd;
-     wire signed[31:0] data_result;
-     wire isNotEqual,isLessThan,overflow;
-     
-	  wire [31:0] data_write1;
 	 
-	  //assign data_operandB, s2 or immd
-		assign extendImd[16:0] = q_imem[16:0];
-		assign extendImd[31:17] = {15{q_imem[16]}};
-		assign data_operandB=ALUinB?extendImd:data_readRegB;
-
-	  
-	  pc myPC(clock,reset,address_imem);
-     controlSignals myControl(q_imem,ctrl_writeEnable,Rs2,ALUinB,wren,ALUop,shiftamt);
-     alu myAlu(data_readRegA, data_operandB, ALUop, shiftamt, data_result, isNotEqual, isLessThan, overflow);
-
+	//PC
+	pc myPC(clock,reset,address_imem);
+	 
+	//control signals
+	wire Rs2,Rwe,ALUinB,Rwd,DMwe;
+   wire[4:0] ALUop,shiftamt;
+    
+	controlSignals myControl(q_imem,ctrl_writeEnable,Rs2,ALUinB,wren,Rwd,ALUop,shiftamt);
+     
+	wire [31:0] data_write1;
+	 
+	 //assign data_operandB, s2 or immd
+	wire signed[31:0] data_operandB,extendImd;
+	assign extendImd[16:0] = q_imem[16:0];
+	assign extendImd[31:17] = {15{q_imem[16]}};
+	assign data_operandB=ALUinB?extendImd:data_readRegB;
 	
+	//alu	
+	wire signed[31:0] data_result;
+	wire isNotEqual,isLessThan,overflow;
+	alu myAlu(data_readRegA, data_operandB, ALUop, shiftamt, data_result, isNotEqual, isLessThan, overflow);
 
-		 //for Regfile
-		 assign ctrl_readRegA=q_imem[21:17];
-		 assign ctrl_readRegB=Rs2?q_imem[26:22]:q_imem[16:12];
-		 assign ctrl_writeReg=overflow?5'b11110:q_imem[26:22];
-		 assign data_write1=Rwd?q_dmem:data_result;
-		 assign data_writeReg=overflow?1'b1:data_write1;
 
-		 //for Dmem, assign data and address_dmem
-		 assign address_dmem=data_result[11:0];
-		 assign data=data_readRegB;	 
+	//for Regfile
+	assign ctrl_readRegA=q_imem[21:17];
+	assign ctrl_readRegB=Rs2?q_imem[26:22]:q_imem[16:12];
+	assign ctrl_writeReg=overflow?5'b11110:q_imem[26:22];
+	assign data_write1=Rwd?q_dmem:data_result;
+	assign data_writeReg=overflow?1'b1:data_write1;
+
+	//for Dmem, assign data and address_dmem
+	assign address_dmem=data_result[11:0];
+	assign data=data_readRegB;	 
 	
 endmodule
