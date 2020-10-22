@@ -95,52 +95,33 @@ module processor(
 	 //control signals
 	  wire Rs2,Rwe,ALUinB,Rwd,DMwe;
      wire[4:0] ALUop,shiftamt;
-     wire[31:0] data_operandB,extendImd;
-     wire[31:0] data_result;
+     wire signed[31:0] data_operandB,extendImd;
+     wire signed[31:0] data_result;
      wire isNotEqual,isLessThan,overflow;
      
-	  
-	  reg[31:0] inner_write1,inner_writeData;
-	  reg[4:0] inner_RegA,inner_RegB,inner_writeReg;
-	  reg inner_rwe,inner_wren;
-	  
+	  wire [31:0] data_write1;
+	 
 	  //assign data_operandB, s2 or immd
 		assign extendImd[16:0] = q_imem[16:0];
 		assign extendImd[31:17] = {15{q_imem[16]}};
 		assign data_operandB=ALUinB?extendImd:data_readRegB;
 
 	  
-	  //output for regfile
-     assign ctrl_readRegA=inner_RegA;
-	  assign ctrl_readRegB=inner_RegB;
-	  assign ctrl_writeReg=inner_writeReg;
-	  assign data_writeReg=inner_writeData;
-	  assign ctrl_writeEnable=inner_rwe;
-	  
-	  //outputs for Dmem
-	  reg[11:0] inner_addrD;
-	  reg[31:0] inner_data;
-	  assign address_dmem=inner_addrD;
-	  assign data=inner_data;
-	  assign wren=inner_wren;
-	  
 	  pc myPC(clock,reset,address_imem);
-     controlSignals myControl(q_imem,Rwe,Rs2,ALUinB,DMwe,Rwd,ALUop,shiftamt);
+     controlSignals myControl(q_imem,ctrl_writeEnable,Rs2,ALUinB,wren,ALUop,shiftamt);
      alu myAlu(data_readRegA, data_operandB, ALUop, shiftamt, data_result, isNotEqual, isLessThan, overflow);
 
-	 always @(posedge clock) begin
+	
 
 		 //for Regfile
-		 inner_RegA=q_imem[21:17];
-		 inner_RegB=Rs2?q_imem[26:22]:q_imem[16:12];
-		 inner_writeReg=overflow?5'b11110:q_imem[26:22];
-		 inner_write1=Rwd?q_dmem:data_result;
-		 inner_writeData=overflow?1'b1:inner_write1;
-		 inner_rwe=Rwe;
+		 assign ctrl_readRegA=q_imem[21:17];
+		 assign ctrl_readRegB=Rs2?q_imem[26:22]:q_imem[16:12];
+		 assign ctrl_writeReg=overflow?5'b11110:q_imem[26:22];
+		 assign data_write1=Rwd?q_dmem:data_result;
+		 assign data_writeReg=overflow?1'b1:data_write1;
 
 		 //for Dmem, assign data and address_dmem
-		 inner_addrD=data_result[11:0];
-		 inner_data=data_readRegB;
-		 inner_wren=DMwe;
-	 end
+		 assign address_dmem=data_result[11:0];
+		 assign data=data_readRegB;	 
+	
 endmodule
